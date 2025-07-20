@@ -1,8 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
-import { MongoClient } from 'mongodb'
+import { MongoClient, Db } from 'mongodb'
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || ''
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://nasirhuzaifa95:1234@cluster0.okbji.mongodb.net'
+
+let cachedClient: MongoClient | null = null
+let cachedDb: Db | null = null
 
 export const connectToMongoDB = async () => {
   try {
@@ -10,16 +13,55 @@ export const connectToMongoDB = async () => {
       throw new Error('MONGODB_URI is not defined in environment variables')
     }
     
+    // Return cached connection if available
+    if (cachedClient && cachedDb) {
+      return { client: cachedClient, db: cachedDb }
+    }
+    
     const client = new MongoClient(MONGODB_URI, {
-      // Add connection options if needed
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     })
     
-    // Test the connection by accessing the admin database
-    await client.db("admin").command({ ping: 1 })
+    await client.connect()
+    const db = client.db('resume_tailor')
+    
+    // Test the connection
+    await db.command({ ping: 1 })
     console.log('Successfully connected to MongoDB')
-    return client
+    
+    // Cache the connection
+    cachedClient = client
+    cachedDb = db
+    
+    return { client, db }
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error)
+    throw error
+  }
+}
+
+export const insertResumeAnalysis = async (analysisData: any) => {
+  try {
+    const { db } = await connectToMongoDB()
+    
+    const document = {
+      ...analysisData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+    
+    const result = await db.collection('resume_analyses').insertOne(document)
+    console.log('Resume analysis stored with ID:', result.insertedId)
+    
+    return {
+      success: true,
+      analysisId: result.insertedId.toString(),
+      message: 'Resume analysis stored successfully'
+    }
+  } catch (error) {
+    console.error('Failed to store resume analysis:', error)
     throw error
   }
 }

@@ -4,12 +4,19 @@ import { useState } from 'react'
 import { useAuth } from '@/components/AuthProvider'
 import ResumeAnalyzer from '@/components/ResumeAnalyzer'
 import AnalysisResults from '@/components/AnalysisResults'
+import SimpleAnalysisResults from '@/components/SimpleAnalysisResults'
 import LoginForm from '@/components/LoginForm'
 import UserProfile from '@/components/UserProfile'
 
 interface AnalysisResult {
   success: boolean
   message: string
+  analysisText?: string
+  analysisId?: string
+  userId?: string
+  jobTitle?: string
+  company?: string
+  timestamp?: string
   data?: {
     analysisId: string
     userId: string
@@ -163,7 +170,12 @@ export default function Home() {
         ) : (
           <div>
             {analysisResult?.success ? (
-              <AnalysisResults results={analysisResult.data!} />
+              // Check if we have structured data (complex analysis) or simple text analysis
+              analysisResult.data ? (
+                <AnalysisResults results={analysisResult.data} />
+              ) : (
+                <SimpleAnalysisResults results={analysisResult} />
+              )
             ) : (
               <div className="max-w-2xl mx-auto">
                 <div className="glass border border-red-500/20 rounded-2xl p-8 text-center">

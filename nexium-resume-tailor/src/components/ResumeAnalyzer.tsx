@@ -5,6 +5,12 @@ interface AnalysisResult {
   message: string
   data?: any
   error?: string
+  analysisText?: string
+  analysisId?: string
+  userId?: string
+  jobTitle?: string
+  company?: string
+  timestamp?: string
 }
 
 interface ResumeAnalyzerProps {
@@ -66,26 +72,83 @@ export default function ResumeAnalyzer({ userId, onAnalysisComplete }: ResumeAna
   }
 
   const analyzeResume = async (file: File): Promise<AnalysisResult> => {
+    // Create FormData to send file directly
     const formData = new FormData()
-    formData.append('file', file)
+    
+    // Add the PDF file directly
+    formData.append('resumeFile', file)
+    
+    // Add other form fields
     formData.append('userId', userId)
+    formData.append('jobTitle', jobTitle || 'Not specified')
+    formData.append('company', company || 'Not specified')
     formData.append('jobDescription', jobDescription)
-    if (jobTitle) formData.append('jobTitle', jobTitle)
-    if (company) formData.append('company', company)
 
-    // Use demo endpoint for now, switch to /api/analyze-resume when n8n is ready
-    const response = await fetch('/api/demo-analyze', {
+    // Send to internal API route (proxy to n8n)
+    const response = await fetch('/api/resume-analysis', {
       method: 'POST',
-      body: formData,
+      body: formData, // Send FormData directly
     })
 
     const result = await response.json()
+    
+    // Debug logging
+    console.log('Raw response status:', response.status)
+    console.log('Raw response from n8n:', result)
+    console.log('Response type:', typeof result)
+    console.log('Is array:', Array.isArray(result))
     
     if (!response.ok) {
       throw new Error(result.error || 'Analysis failed')
     }
 
-    return result
+    // Handle Supabase "Create a row" response format (returns array) - CHECK THIS FIRST
+    if (result && Array.isArray(result) && result.length > 0 && result[0].id) {
+      const savedRecord = result[0]
+      console.log('Processing Supabase array response:', savedRecord)
+      return {
+        success: true,
+        message: 'Resume analysis completed successfully',
+        analysisText: savedRecord.analysis_text,
+        analysisId: savedRecord.id,
+        userId: savedRecord.user_id,
+        jobTitle: savedRecord.job_title,
+        company: savedRecord.company,
+        timestamp: savedRecord.created_at
+      }
+    }
+    // Handle n8n workflow response format (simple text response)
+    else if (result && result.success && result.analysisText) {
+      console.log('Processing n8n workflow response with analysisText:', result)
+      return {
+        success: true,
+        message: result.message || 'Resume analysis completed successfully',
+        analysisText: result.analysisText,
+        analysisId: result.analysisId || 'temp-id',
+        userId: result.userId || userId,
+        jobTitle: result.jobTitle || jobTitle,
+        company: result.company || company,
+        timestamp: new Date().toISOString()
+      }
+    }
+    // Handle direct object response (fallback)
+    else if (result && result.id) {
+      console.log('Processing direct object response:', result)
+      return {
+        success: true,
+        message: 'Resume analysis completed successfully',
+        analysisId: result.id,
+        analysisText: result.analysis_text,
+        timestamp: result.created_at,
+        userId: result.user_id,
+        jobTitle: result.job_title,
+        company: result.company
+      }
+    } else {
+      console.error('Unexpected response format:', result)
+      console.error('Available keys:', Object.keys(result || {}))
+      throw new Error('Invalid response format from analysis service')
+    }
   }
 
   const handleSubmit = async (event: React.FormEvent) => {

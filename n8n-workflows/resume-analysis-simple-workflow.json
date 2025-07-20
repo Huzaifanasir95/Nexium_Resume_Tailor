@@ -1,0 +1,153 @@
+{
+  "name": "Resume Analysis Simple",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "resume-analysis-simple",
+        "options": {}
+      },
+      "id": "f8f8a4c9-7b2b-4f0a-9f8c-1a2b3c4d5e6f",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "resume-analysis-simple"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "file-content",
+              "name": "resumeContent",
+              "value": "={{ $json.resumeFile ? 'Resume File: ' + $json.resumeFile.name + ' (Content extraction will be implemented)' : 'No resume file provided' }}",
+              "type": "string"
+            },
+            {
+              "id": "analysis-prompt",
+              "name": "analysisPrompt",
+              "value": "=You are a professional resume analyzer. Analyze the following resume against the provided job description.\n\nJob Title: {{ $json.jobTitle }}\nCompany: {{ $json.company }}\nJob Description: {{ $json.jobDescription }}\n\nResume Content: {{ $json.resumeContent || 'File processing needed' }}\n\nProvide analysis in this format:\n\n**MATCH SCORE**\nOverall Match: [Score]%\n\n**STRENGTHS**\n- [Key strengths]\n\n**GAPS** \n- [Areas to improve]\n\n**RECOMMENDATIONS**\n- [Specific suggestions]\n\n**KEYWORDS TO ADD**\n- [Missing keywords]\n\n**TAILORING SUGGESTIONS**\n- [Specific changes]",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c3d4e5f6-7g8h-9i0j-1k2l-m3n4o5p6q7r8",
+      "name": "Process Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-3.5-turbo",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 2000
+        },
+        "prompt": "={{ $json.analysisPrompt }}"
+      },
+      "id": "a1b2c3d4-5e6f-7g8h-9i0j-k1l2m3n4o5p6",
+      "name": "Basic LLM Chain",
+      "type": "@langchain/n8n-nodes-langchain.lmchatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insertOne",
+        "collection": "resume_analyses",
+        "fields": "document",
+        "document": "={\n  \"analysisId\": \"{{ $('Webhook').first().json.userId }}_{{ $now.toUnixInteger() }}\",\n  \"userId\": \"{{ $('Webhook').first().json.userId }}\",\n  \"jobTitle\": \"{{ $('Webhook').first().json.jobTitle }}\",\n  \"company\": \"{{ $('Webhook').first().json.company }}\",\n  \"jobDescription\": \"{{ $('Webhook').first().json.jobDescription }}\",\n  \"analysisText\": \"{{ $json.text }}\",\n  \"analysisDate\": \"{{ $now.format('yyyy-MM-dd HH:mm:ss') }}\",\n  \"completedAt\": \"{{ $now.format('yyyy-MM-dd HH:mm:ss') }}\",\n  \"createdAt\": \"{{ $now.format('yyyy-MM-dd HH:mm:ss') }}\",\n  \"updatedAt\": \"{{ $now.format('yyyy-MM-dd HH:mm:ss') }}\"\n}"
+      },
+      "id": "d4e5f6g7-8h9i-0j1k-2l3m-n4o5p6q7r8s9",
+      "name": "MongoDB",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ],
+      "credentials": {
+        "mongoDb": {
+          "id": "mongodb-resume-tailor",
+          "name": "MongoDB Resume Tailor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseCode": 200,
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Resume analysis completed and stored successfully\",\n  \"analysisId\": \"{{ $('MongoDB').first().json.insertedId }}\",\n  \"timestamp\": \"{{ $now.format('yyyy-MM-dd HH:mm:ss') }}\"\n}"
+      },
+      "id": "e5f6g7h8-9i0j-1k2l-3m4n-o5p6q7r8s9t0",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        720,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Input": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "MongoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MongoDB": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1"
+}

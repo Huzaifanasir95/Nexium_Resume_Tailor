@@ -1,0 +1,362 @@
+{
+  "name": "Resume Tailor - Complete Analysis Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "resume-analysis",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f1d9c5a0-8b2e-4d1f-9c3a-7e5f6a8b9c0d",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "resume-analysis"
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-goog-api-key",
+              "value": "AIzaSyA0SLL-nTWq6r5JaWLQRSM1gyCL3q0Nlnw"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "Extract all text content from this document. Return only the raw text without any formatting, headers, or metadata. Focus on preserving the actual content that would be visible when reading the document."
+                },
+                {
+                  "inline_data": {
+                    "mime_type": "{{ $json.resumeFile.mimeType }}",
+                    "data": "{{ $json.resumeFile.data }}"
+                  }
+                }
+              ]
+            }
+          ],
+          "generationConfig": {
+            "temperature": 0.1,
+            "topK": 1,
+            "topP": 1,
+            "maxOutputTokens": 4096
+          }
+        },
+        "options": {}
+      },
+      "id": "a2b3c4d5-e6f7-8901-2345-6789abcdef01",
+      "name": "Gemini Extract Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and clean the resume text from Gemini response\nconst response = $input.first().json;\nconst extractedText = response.candidates[0].content.parts[0].text;\n\n// Clean up the extracted text\nconst cleanText = extractedText\n  .replace(/\\n\\s*\\n/g, '\\n')  // Remove excessive line breaks\n  .replace(/\\s+/g, ' ')        // Normalize spaces\n  .trim();\n\n// Generate analysis ID for tracking\nconst analysisId = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n// Get original webhook data\nconst webhookData = $input.all()[0].json;\n\nreturn {\n  userId: webhookData.userId,\n  jobTitle: webhookData.jobTitle || 'Not specified',\n  company: webhookData.company || 'Not specified',\n  jobDescription: webhookData.jobDescription,\n  resumeFile: webhookData.resumeFile,\n  resumeText: cleanText,\n  analysisId: analysisId,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "b3c4d5e6-f7a8-9012-3456-789abcdef012",
+      "name": "Process Extracted Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "connectionString": "mongodb+srv://nasirhuzaifa95:1234@cluster0.okbji.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+        "database": "resume_analyzer",
+        "collection": "resume_extractions",
+        "operation": "insert",
+        "fields": {
+          "analysisId": "{{ $json.analysisId }}",
+          "userId": "{{ $json.userId }}",
+          "extractedAt": "{{ $json.timestamp }}",
+          "resumeText": "{{ $json.resumeText }}",
+          "jobDescription": "{{ $json.jobDescription }}",
+          "jobTitle": "{{ $json.jobTitle }}",
+          "company": "{{ $json.company }}",
+          "fileInfo": {
+            "fileName": "{{ $json.resumeFile.name }}",
+            "mimeType": "{{ $json.resumeFile.mimeType }}"
+          }
+        }
+      },
+      "id": "c4d5e6f7-a8b9-0123-4567-89abcdef0123",
+      "name": "Store Extracted Content",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-goog-api-key",
+              "value": "AIzaSyA0SLL-nTWq6r5JaWLQRSM1gyCL3q0Nlnw"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "Analyze this resume against the job description and provide a comprehensive analysis in JSON format.\n\nRESUME CONTENT:\n{{ $json.resumeText }}\n\nJOB DESCRIPTION:\n{{ $json.jobDescription }}\n\nJOB TITLE: {{ $json.jobTitle }}\nCOMPANY: {{ $json.company }}\n\nProvide a detailed analysis in this exact JSON structure:\n{\n  \"overallScore\": {\n    \"matchPercentage\": \"75\",\n    \"strengths\": [\"strength1\", \"strength2\", \"strength3\"],\n    \"improvementAreas\": [\"area1\", \"area2\", \"area3\"]\n  },\n  \"keywordAnalysis\": {\n    \"missingKeywords\": [\"keyword1\", \"keyword2\"],\n    \"matchingKeywords\": [\"keyword3\", \"keyword4\"],\n    \"keywordScore\": \"65\"\n  },\n  \"skillsGapAnalysis\": {\n    \"missingSkills\": [\"skill1\", \"skill2\"],\n    \"matchingSkills\": [\"skill3\", \"skill4\"],\n    \"recommendedSkills\": [\"skill5\", \"skill6\"]\n  },\n  \"contentSuggestions\": {\n    \"summaryRewrite\": \"Improved professional summary text that aligns with the job requirements...\",\n    \"experienceBullets\": [\"Enhanced bullet point 1\", \"Enhanced bullet point 2\"],\n    \"achievementHighlights\": [\"Achievement 1\", \"Achievement 2\"]\n  },\n  \"atsOptimization\": {\n    \"formatSuggestions\": [\"suggestion1\", \"suggestion2\"],\n    \"keywordPlacement\": [\"placement1\", \"placement2\"],\n    \"sectionOptimization\": [\"optimization1\", \"optimization2\"]\n  },\n  \"jobRequirements\": {\n    \"requiredSkills\": [\"skill1\", \"skill2\"],\n    \"preferredQualifications\": [\"qual1\", \"qual2\"],\n    \"experienceLevel\": \"Junior/Mid/Senior\",\n    \"educationRequirements\": [\"req1\", \"req2\"]\n  }\n}"
+                }
+              ]
+            }
+          ],
+          "generationConfig": {
+            "temperature": 0.3,
+            "topK": 40,
+            "topP": 0.95,
+            "maxOutputTokens": 4096
+          }
+        },
+        "options": {}
+      },
+      "id": "d5e6f7a8-b9c0-1234-5678-9abcdef01234",
+      "name": "Gemini Complete Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process the analysis results from Gemini\nconst response = $input.first().json;\nconst analysisText = response.candidates[0].content.parts[0].text;\n\n// Parse the analysis results\nlet analysisResults;\ntry {\n  // Extract JSON from the response (remove any markdown formatting)\n  const jsonMatch = analysisText.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    analysisResults = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No valid JSON found in analysis response');\n  }\n} catch (error) {\n  console.error('Failed to parse analysis results:', error);\n  // Provide fallback analysis structure\n  analysisResults = {\n    overallScore: {\n      matchPercentage: \"0\",\n      strengths: [\"Analysis failed - please try again\"],\n      improvementAreas: [\"Unable to process resume content\"]\n    },\n    keywordAnalysis: {\n      missingKeywords: [],\n      matchingKeywords: [],\n      keywordScore: \"0\"\n    },\n    skillsGapAnalysis: {\n      missingSkills: [],\n      matchingSkills: [],\n      recommendedSkills: []\n    },\n    contentSuggestions: {\n      summaryRewrite: \"Analysis failed - please resubmit your resume\",\n      experienceBullets: [],\n      achievementHighlights: []\n    },\n    atsOptimization: {\n      formatSuggestions: [],\n      keywordPlacement: [],\n      sectionOptimization: []\n    },\n    jobRequirements: {\n      requiredSkills: [],\n      preferredQualifications: [],\n      experienceLevel: \"Not specified\",\n      educationRequirements: []\n    }\n  };\n}\n\n// Get previous data and add analysis results\nconst previousData = $input.all()[0].json;\n\nreturn {\n  ...previousData,\n  analysisResults: analysisResults,\n  completedAt: new Date().toISOString()\n};"
+      },
+      "id": "e6f7a8b9-c0d1-2345-6789-abcdef012345",
+      "name": "Process Analysis Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "connectionString": "mongodb+srv://nasirhuzaifa95:1234@cluster0.okbji.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+        "database": "resume_analyzer",
+        "collection": "resume_analyses",
+        "operation": "insert",
+        "fields": {
+          "analysisId": "{{ $json.analysisId }}",
+          "userId": "{{ $json.userId }}",
+          "jobTitle": "{{ $json.jobTitle }}",
+          "company": "{{ $json.company }}",
+          "analysisDate": "{{ $json.timestamp }}",
+          "completedAt": "{{ $json.completedAt }}",
+          "jobDescription": "{{ $json.jobDescription }}",
+          "resumeText": "{{ $json.resumeText }}",
+          "results": "{{ $json.analysisResults }}",
+          "metadata": {
+            "fileInfo": {
+              "fileName": "{{ $json.resumeFile.name }}",
+              "mimeType": "{{ $json.resumeFile.mimeType }}"
+            }
+          }
+        }
+      },
+      "id": "f7a8b9c0-d1e2-3456-789a-bcdef0123456",
+      "name": "Store Final Results",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": {
+          "success": true,
+          "message": "Resume analysis completed successfully",
+          "data": {
+            "analysisId": "{{ $json.analysisId }}",
+            "userId": "{{ $json.userId }}",
+            "analysisDate": "{{ $json.timestamp }}",
+            "results": "{{ $json.analysisResults }}"
+          }
+        },
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "a8b9c0d1-e2f3-4567-89ab-cdef01234567",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {},
+      "id": "b9c0d1e2-f3a4-5678-9abc-def012345678",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [900, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseCode": 500,
+        "responseBody": {
+          "success": false,
+          "message": "{{ $json.error?.message || 'Analysis failed' }}",
+          "error": "Analysis failed - please check your input and try again",
+          "analysisId": "{{ $json.analysisId || 'unknown' }}"
+        },
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "c0d1e2f3-a4b5-6789-abcd-ef0123456789",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 500]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Gemini Extract Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Extract Content": {
+      "main": [
+        [
+          {
+            "node": "Process Extracted Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Extracted Text": {
+      "main": [
+        [
+          {
+            "node": "Store Extracted Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Extracted Content": {
+      "main": [
+        [
+          {
+            "node": "Gemini Complete Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Complete Analysis": {
+      "main": [
+        [
+          {
+            "node": "Process Analysis Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Analysis Results": {
+      "main": [
+        [
+          {
+            "node": "Store Final Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Final Results": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "resume-tailor-workflow",
+  "tags": []
+}

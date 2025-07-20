@@ -1,12 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Only create client if valid credentials are provided
+export const supabase = (supabaseUrl !== 'https://placeholder.supabase.co' && supabaseAnonKey !== 'placeholder-key') 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 // Auth helper functions
 export const signInWithEmail = async (email: string) => {
+  if (!supabase) {
+    throw new Error('Supabase is not configured')
+  }
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
     options: {
@@ -16,22 +22,10 @@ export const signInWithEmail = async (email: string) => {
   return { data, error }
 }
 
-// New Google OAuth sign-in function
-export const signInWithGoogle = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
-      },
-    }
-  })
-  return { data, error }
-}
-
 export const signOut = async () => {
+  if (!supabase) {
+    throw new Error('Supabase is not configured')
+  }
   const { error } = await supabase.auth.signOut()
   return { error }
 }
