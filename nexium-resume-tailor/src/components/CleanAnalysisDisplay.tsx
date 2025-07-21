@@ -158,114 +158,190 @@ export default function CleanAnalysisDisplay() {
         <div className="absolute top-1/4 left-1/2 w-64 h-64 bg-[#10b981]/6 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      {/* Fixed Top Navigation Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#0f0f23]/80 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo/Title Section */}
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🎯</span>
+      {/* Enhanced Fixed Top Navigation Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-gradient-to-r from-[#0f0f23]/90 via-[#1a1a2e]/85 to-[#16213e]/90 border-b-2 border-gradient-to-r from-[#667eea]/30 via-[#764ba2]/30 to-[#f093fb]/30 shadow-2xl">
+        <div className="w-full px-8 py-6">
+          <div className="max-w-8xl mx-auto flex items-center justify-between">
+            {/* Enhanced Logo/Title Section */}
+            <div className="flex items-center space-x-6">
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 animate-pulse">
+                  <span className="text-white font-bold text-2xl">🎯</span>
+                </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#667eea] to-[#f093fb] rounded-2xl blur opacity-30"></div>
               </div>
-              <div>
-                <h1 className="text-xl font-bold gradient-text">Resume Analysis</h1>
-                <p className="text-gray-400 text-xs">AI-Powered Insights</p>
+              <div className="hidden sm:block">
+                <h1 className="text-2xl font-black gradient-text mb-1">Resume Analysis</h1>
+                <p className="text-gray-400 text-sm font-medium">AI-Powered Career Insights</p>
               </div>
             </div>
 
-            {/* Center Info */}
-            <div className="hidden md:flex items-center space-x-6">
-              <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
-                <span className="text-[#667eea]">📋</span>
-                <span className="text-white font-medium text-sm">{analysisData?.job_title || 'Analysis'}</span>
+            {/* Enhanced Center Info */}
+            <div className="hidden lg:flex items-center space-x-8">
+              <div className="flex items-center space-x-3 glass px-6 py-3 rounded-2xl border border-[#667eea]/20 hover:border-[#667eea]/40 transition-all duration-300">
+                <div className="w-8 h-8 bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">📋</span>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Position</p>
+                  <p className="text-white font-bold text-sm">{analysisData?.job_title || 'Analysis'}</p>
+                </div>
               </div>
+              
               {cleanAnalysis.matchScore && (
-                <div className="bg-gradient-to-r from-[#10b981] to-[#667eea] text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg animate-pulse">
-                  {cleanAnalysis.matchScore} Match
+                <div className="relative group">
+                  <div className="bg-gradient-to-r from-[#10b981] via-[#667eea] to-[#764ba2] text-white px-8 py-3 rounded-2xl font-black text-lg shadow-2xl hover:scale-110 transition-all duration-300 border-2 border-white/20">
+                    <div className="flex items-center space-x-2">
+                      <span className="animate-pulse">🔥</span>
+                      <span>{cleanAnalysis.matchScore} Match</span>
+                      <span className="animate-pulse">🚀</span>
+                    </div>
+                  </div>
+                  <div className="absolute -inset-1 bg-gradient-to-r from-[#10b981] to-[#667eea] rounded-2xl blur opacity-40 group-hover:opacity-60 transition-opacity duration-300"></div>
                 </div>
               )}
-              <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
-                <span className="text-[#f093fb]">📅</span>
-                <span className="text-gray-300 text-sm">{new Date(analysisData?.created_at || '').toLocaleDateString()}</span>
+              
+              <div className="flex items-center space-x-3 glass px-6 py-3 rounded-2xl border border-[#f093fb]/20 hover:border-[#f093fb]/40 transition-all duration-300">
+                <div className="w-8 h-8 bg-gradient-to-r from-[#f093fb] to-[#667eea] rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">📅</span>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Created</p>
+                  <p className="text-white font-bold text-sm">{new Date(analysisData?.created_at || '').toLocaleDateString()}</p>
+                </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-3">
+            {/* Enhanced Action Buttons */}
+            <div className="flex items-center space-x-4">
               <button 
                 onClick={() => fetchAnalysis()}
-                className="glass hover:bg-white/10 text-[#10b981] p-2 rounded-lg transition-all duration-300 hover:scale-110"
+                className="group relative glass hover:bg-[#10b981]/20 text-[#10b981] p-3 rounded-2xl transition-all duration-300 hover:scale-110 border border-[#10b981]/20 hover:border-[#10b981]/40"
                 title="Refresh Analysis"
               >
-                🔄
+                <span className="text-xl group-hover:animate-spin">🔄</span>
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#10b981]/20 to-[#10b981]/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
+              
               <button 
                 onClick={() => window.location.href = '/'}
-                className="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition-all duration-300"
+                className="relative group bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] text-white px-8 py-3 rounded-2xl font-bold text-sm hover:scale-105 transition-all duration-300 shadow-xl border-2 border-white/20"
               >
-                New Analysis
+                <span className="relative z-10 flex items-center space-x-2">
+                  <span>🚀</span>
+                  <span>New Analysis</span>
+                </span>
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#667eea] to-[#f093fb] rounded-2xl blur opacity-40 group-hover:opacity-60 transition-opacity duration-300"></div>
+              </button>
+              
+              <button 
+                onClick={() => window.history.back()}
+                className="glass hover:bg-white/10 text-gray-300 hover:text-white p-3 rounded-2xl transition-all duration-300 hover:scale-110 border border-gray-500/20 hover:border-gray-300/40"
+                title="Go Back"
+              >
+                <span className="text-xl">←</span>
               </button>
             </div>
           </div>
+        </div>
+        
+        {/* Enhanced Animated Border */}
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] opacity-60"></div>
+        <div className="absolute bottom-0 left-0 w-full h-1">
+          <div className="h-full bg-gradient-to-r from-transparent via-white to-transparent animate-pulse opacity-40"></div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto relative z-10 px-4 pt-24 pb-8">
-        {/* Main Title Section */}
-        <div className="text-center mb-16">
-          <div className="inline-block">
+      <div className="max-w-8xl mx-auto relative z-10 px-6 pt-32 pb-12">
+        {/* Enhanced Main Title Section */}
+        <div className="text-center mb-20">
+          <div className="inline-block relative">
             <div className="relative">
-              <h2 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] mb-4 animate-pulse">
+              <h2 className="text-7xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] mb-6 animate-pulse">
                 Analysis Results
               </h2>
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-[#667eea] to-[#f093fb] rounded-full"></div>
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-64 h-2 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] rounded-full shadow-lg"></div>
+              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-[#f093fb] to-[#667eea] rounded-full animate-pulse"></div>
             </div>
+            {/* Floating decorative elements */}
+            <div className="absolute -top-8 -left-8 w-4 h-4 bg-[#667eea] rounded-full animate-bounce"></div>
+            <div className="absolute -top-4 -right-12 w-3 h-3 bg-[#f093fb] rounded-full animate-bounce delay-300"></div>
+            <div className="absolute -bottom-8 -left-12 w-5 h-5 bg-[#764ba2] rounded-full animate-bounce delay-700"></div>
+            <div className="absolute -bottom-4 -right-8 w-4 h-4 bg-[#10b981] rounded-full animate-bounce delay-1000"></div>
           </div>
+          <p className="text-gray-300 text-xl font-light mt-8 max-w-3xl mx-auto">
+            Comprehensive AI-powered analysis of your resume with actionable insights
+          </p>
         </div>
 
-        {/* Enhanced Summary Card */}
-        <div className="glass rounded-3xl p-10 mb-12 card-hover border border-white/10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb]"></div>
+        {/* Ultra Enhanced Summary Card */}
+        <div className="relative glass rounded-3xl p-12 mb-16 card-hover border-2 border-white/20 overflow-hidden group">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb]"></div>
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#667eea]/10 rounded-full blur-3xl group-hover:scale-150 transition-all duration-700"></div>
+          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-[#f093fb]/10 rounded-full blur-3xl group-hover:scale-150 transition-all duration-700"></div>
+          
           <div className="text-center relative z-10">
-            <div className="flex items-center justify-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-[#f093fb] to-[#667eea] rounded-full flex items-center justify-center mr-4 animate-spin-slow">
-                <span className="text-3xl">✨</span>
+            <div className="flex items-center justify-center mb-8">
+              <div className="relative">
+                <div className="w-20 h-20 bg-gradient-to-r from-[#f093fb] via-[#764ba2] to-[#667eea] rounded-full flex items-center justify-center mr-6 shadow-2xl group-hover:scale-110 transition-all duration-500">
+                  <span className="text-4xl animate-pulse">✨</span>
+                </div>
+                <div className="absolute -inset-2 bg-gradient-to-r from-[#f093fb] to-[#667eea] rounded-full blur opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
               </div>
-              <h3 className="text-4xl font-bold text-white">Executive Summary</h3>
-              <div className="w-16 h-16 bg-gradient-to-r from-[#667eea] to-[#f093fb] rounded-full flex items-center justify-center ml-4 animate-spin-slow">
-                <span className="text-3xl">✨</span>
+              
+              <h3 className="text-5xl font-black text-white group-hover:scale-105 transition-all duration-300">
+                Executive Summary
+              </h3>
+              
+              <div className="relative">
+                <div className="w-20 h-20 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] rounded-full flex items-center justify-center ml-6 shadow-2xl group-hover:scale-110 transition-all duration-500">
+                  <span className="text-4xl animate-pulse">🎯</span>
+                </div>
+                <div className="absolute -inset-2 bg-gradient-to-r from-[#667eea] to-[#f093fb] rounded-full blur opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
               </div>
             </div>
-            <p className="text-gray-200 text-2xl leading-relaxed max-w-5xl mx-auto font-light">
-              {cleanAnalysis.summary}
-            </p>
+            
+            <div className="max-w-6xl mx-auto">
+              <p className="text-gray-200 text-2xl lg:text-3xl leading-relaxed font-light group-hover:text-white transition-colors duration-300">
+                {cleanAnalysis.summary}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Enhanced Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        {/* Ultra Enhanced Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
           {[
-            { count: cleanAnalysis.keywordsFound.length, label: 'Keywords Found', color: '#10b981', icon: '✅', progress: 85 },
-            { count: cleanAnalysis.missingKeywords.length, label: 'Missing Keywords', color: '#ef4444', icon: '❌', progress: 60 },
-            { count: cleanAnalysis.skillsGap.length, label: 'Skills to Add', color: '#f59e0b', icon: '🎯', progress: 70 },
-            { count: cleanAnalysis.quickWins.length, label: 'Quick Wins', color: '#667eea', icon: '🚀', progress: 90 }
+            { count: cleanAnalysis.keywordsFound.length, label: 'Keywords Found', color: '#10b981', icon: '✅', progress: 85, bgGradient: 'from-[#10b981]/20 to-[#10b981]/5' },
+            { count: cleanAnalysis.missingKeywords.length, label: 'Missing Keywords', color: '#ef4444', icon: '❌', progress: 60, bgGradient: 'from-[#ef4444]/20 to-[#ef4444]/5' },
+            { count: cleanAnalysis.skillsGap.length, label: 'Skills to Add', color: '#f59e0b', icon: '🎯', progress: 70, bgGradient: 'from-[#f59e0b]/20 to-[#f59e0b]/5' },
+            { count: cleanAnalysis.quickWins.length, label: 'Quick Wins', color: '#667eea', icon: '🚀', progress: 90, bgGradient: 'from-[#667eea]/20 to-[#667eea]/5' }
           ].map((stat, index) => (
-            <div key={index} className="glass rounded-3xl p-8 text-center card-hover border border-white/10 relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-full h-1 opacity-50" style={{ backgroundColor: stat.color }}></div>
-              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">{stat.icon}</div>
-              <div className="text-5xl font-black mb-3 group-hover:scale-110 transition-all duration-300" style={{ color: stat.color }}>
-                {stat.count}
-              </div>
-              <div className="font-bold text-white mb-4 text-lg">{stat.label}</div>
-              <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-                <div 
-                  className="h-full rounded-full transition-all duration-1000 ease-out"
-                  style={{ 
-                    backgroundColor: stat.color, 
-                    width: `${stat.progress}%`,
-                    animation: 'slideIn 2s ease-out'
-                  }}
-                ></div>
+            <div key={index} className={`relative glass rounded-3xl p-10 text-center card-hover border-2 border-white/20 overflow-hidden group bg-gradient-to-br ${stat.bgGradient}`}>
+              <div className="absolute top-0 left-0 w-full h-2 opacity-60" style={{ backgroundColor: stat.color }}></div>
+              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-2xl opacity-20 group-hover:scale-150 transition-all duration-700" style={{ backgroundColor: stat.color }}></div>
+              
+              <div className="relative z-10">
+                <div className="text-6xl mb-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">{stat.icon}</div>
+                <div className="text-6xl lg:text-7xl font-black mb-4 group-hover:scale-110 transition-all duration-300" style={{ color: stat.color }}>
+                  {stat.count}
+                </div>
+                <div className="font-bold text-white mb-6 text-xl group-hover:text-2xl transition-all duration-300">{stat.label}</div>
+                
+                <div className="w-full h-4 bg-white/10 rounded-full overflow-hidden mb-4">
+                  <div 
+                    className="h-full rounded-full transition-all duration-2000 ease-out shadow-lg"
+                    style={{ 
+                      backgroundColor: stat.color, 
+                      width: `${stat.progress}%`,
+                      boxShadow: `0 0 20px ${stat.color}40`
+                    }}
+                  ></div>
+                </div>
+                
+                <div className="text-gray-300 text-sm font-medium">
+                  {stat.progress}% Complete
+                </div>
               </div>
             </div>
           ))}
