@@ -84,70 +84,83 @@ export default function ResumeAnalyzer({ userId, onAnalysisComplete }: ResumeAna
     formData.append('company', company || 'Not specified')
     formData.append('jobDescription', jobDescription)
 
-    // Send to internal API route (proxy to n8n)
+    console.log('Starting analysis - this may take a few minutes...')
+
+    // Send to n8n webhook and wait for the complete workflow to finish
     const response = await fetch('/api/resume-analysis', {
       method: 'POST',
-      body: formData, // Send FormData directly
+      body: formData,
     })
+
+    if (!response.ok) {
+      const errorResult = await response.json()
+      throw new Error(errorResult.error || 'Analysis failed')
+    }
 
     const result = await response.json()
     
-    // Debug logging
-    console.log('Raw response status:', response.status)
-    console.log('Raw response from n8n:', result)
-    console.log('Response type:', typeof result)
-    console.log('Is array:', Array.isArray(result))
+    console.log('Analysis completed:', result)
+    console.log('Raw result type:', typeof result)
+    console.log('Raw result keys:', Object.keys(result || {}))
     
-    if (!response.ok) {
-      throw new Error(result.error || 'Analysis failed')
-    }
-
-    // Handle Supabase "Create a row" response format (returns array) - CHECK THIS FIRST
-    if (result && Array.isArray(result) && result.length > 0 && result[0].id) {
-      const savedRecord = result[0]
-      console.log('Processing Supabase array response:', savedRecord)
-      return {
-        success: true,
-        message: 'Resume analysis completed successfully',
-        analysisText: savedRecord.analysis_text,
-        analysisId: savedRecord.id,
-        userId: savedRecord.user_id,
-        jobTitle: savedRecord.job_title,
-        company: savedRecord.company,
-        timestamp: savedRecord.created_at
-      }
-    }
-    // Handle n8n workflow response format (simple text response)
-    else if (result && result.success && result.analysisText) {
-      console.log('Processing n8n workflow response with analysisText:', result)
-      return {
-        success: true,
-        message: result.message || 'Resume analysis completed successfully',
-        analysisText: result.analysisText,
-        analysisId: result.analysisId || 'temp-id',
-        userId: result.userId || userId,
-        jobTitle: result.jobTitle || jobTitle,
-        company: result.company || company,
-        timestamp: new Date().toISOString()
-      }
-    }
-    // Handle direct object response (fallback)
-    else if (result && result.id) {
-      console.log('Processing direct object response:', result)
-      return {
-        success: true,
-        message: 'Resume analysis completed successfully',
-        analysisId: result.id,
-        analysisText: result.analysis_text,
-        timestamp: result.created_at,
-        userId: result.user_id,
-        jobTitle: result.job_title,
-        company: result.company
-      }
+    // Extract analysis ID from the complex nested structure
+    let analysisId = 'unknown'
+    
+    // First try direct properties
+    if (result && result.analysisId) {
+      analysisId = result.analysisId
+    } else if (result && result.analysis_id) {
+      analysisId = result.analysis_id
+    } else if (Array.isArray(result) && result.length > 0 && result[0].analysis_id) {
+      analysisId = result[0].analysis_id
     } else {
-      console.error('Unexpected response format:', result)
-      console.error('Available keys:', Object.keys(result || {}))
-      throw new Error('Invalid response format from analysis service')
+      // Handle the nested object structure from n8n
+      const resultString = JSON.stringify(result)
+      console.log('Searching for analysisId in:', resultString)
+      
+      // Look for analysisId pattern in the stringified result
+      const analysisIdMatch = resultString.match(/"analysisId":\s*"([^"]+)"/);
+      if (analysisIdMatch && analysisIdMatch[1]) {
+        analysisId = analysisIdMatch[1]
+        console.log('Found analysisId via regex:', analysisId)
+      } else {
+        // Try to navigate the nested structure
+        try {
+          const keys = Object.keys(result)
+          for (const key of keys) {
+            if (typeof result[key] === 'object' && result[key] !== null) {
+              if (result[key].analysisId) {
+                analysisId = result[key].analysisId
+                console.log('Found analysisId in nested object:', analysisId)
+                break
+              }
+              // Check if it's a string that contains JSON
+              if (typeof key === 'string' && key.includes('analysisId')) {
+                const idMatch = key.match(/"analysisId":\s*"([^"]+)"/);
+                if (idMatch && idMatch[1]) {
+                  analysisId = idMatch[1]
+                  console.log('Found analysisId in key:', analysisId)
+                  break
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing nested result:', e)
+        }
+      }
+    }
+    
+    console.log('Final extracted analysisId:', analysisId)
+
+    return {
+      success: true,
+      message: 'Resume analysis completed successfully',
+      analysisId: analysisId,
+      userId: userId,
+      jobTitle: jobTitle,
+      company: company,
+      timestamp: new Date().toISOString()
     }
   }
 
@@ -167,13 +180,21 @@ export default function ResumeAnalyzer({ userId, onAnalysisComplete }: ResumeAna
     try {
       setIsAnalyzing(true)
       const result = await analyzeResume(file)
-      onAnalysisComplete(result)
       
-      // Reset form
-      setFile(null)
-      setJobDescription('')
-      setJobTitle('')
-      setCompany('')
+      console.log('📋 Received analysis result:', result)
+      
+      if (result.success && result.analysisId) {
+        // Redirect to the new simple analysis page
+        window.location.href = `/analysis?id=${result.analysisId}`
+      } else {
+        console.error('❌ No analysis ID returned')
+        onAnalysisComplete({
+          success: false,
+          message: 'Analysis failed - no analysis ID returned',
+          error: 'No analysis ID found'
+        })
+      }
+      
     } catch (error: any) {
       console.error('Resume analysis error:', error)
       onAnalysisComplete({
