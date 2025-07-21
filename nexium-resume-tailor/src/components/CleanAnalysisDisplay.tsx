@@ -149,84 +149,126 @@ export default function CleanAnalysisDisplay() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] p-4 relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] relative overflow-hidden">
+      {/* Enhanced Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-10 -left-10 w-72 h-72 bg-[#667eea]/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-1/2 -right-10 w-96 h-96 bg-[#764ba2]/10 rounded-full blur-3xl animate-pulse delay-700"></div>
-        <div className="absolute -bottom-10 left-1/3 w-80 h-80 bg-[#f093fb]/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-[#667eea]/8 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/3 -right-20 w-[500px] h-[500px] bg-[#764ba2]/6 rounded-full blur-3xl animate-pulse delay-700"></div>
+        <div className="absolute -bottom-20 left-1/4 w-80 h-80 bg-[#f093fb]/8 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/4 left-1/2 w-64 h-64 bg-[#10b981]/6 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-block mb-6">
-            <h1 className="text-5xl font-bold gradient-text mb-2">🎯 Resume Analysis</h1>
-            <div className="h-1 w-32 bg-gradient-to-r from-[#667eea] to-[#764ba2] mx-auto rounded-full"></div>
-          </div>
-          <div className="glass rounded-2xl p-6 inline-block">
-            <div className="flex items-center justify-center space-x-8 text-gray-300">
-              <div className="flex items-center space-x-2">
+      {/* Fixed Top Navigation Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#0f0f23]/80 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo/Title Section */}
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">🎯</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold gradient-text">Resume Analysis</h1>
+                <p className="text-gray-400 text-xs">AI-Powered Insights</p>
+              </div>
+            </div>
+
+            {/* Center Info */}
+            <div className="hidden md:flex items-center space-x-6">
+              <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
                 <span className="text-[#667eea]">📋</span>
-                <span className="font-semibold">{analysisData?.job_title || 'Analysis'}</span>
+                <span className="text-white font-medium text-sm">{analysisData?.job_title || 'Analysis'}</span>
               </div>
               {cleanAnalysis.matchScore && (
-                <div className="bg-gradient-to-r from-[#10b981] to-[#667eea] text-white px-6 py-2 rounded-full font-bold text-lg shadow-lg">
+                <div className="bg-gradient-to-r from-[#10b981] to-[#667eea] text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg animate-pulse">
                   {cleanAnalysis.matchScore} Match
                 </div>
               )}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 glass px-4 py-2 rounded-full">
                 <span className="text-[#f093fb]">📅</span>
-                <span>{new Date(analysisData?.created_at || '').toLocaleDateString()}</span>
+                <span className="text-gray-300 text-sm">{new Date(analysisData?.created_at || '').toLocaleDateString()}</span>
               </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => fetchAnalysis()}
+                className="glass hover:bg-white/10 text-[#10b981] p-2 rounded-lg transition-all duration-300 hover:scale-110"
+                title="Refresh Analysis"
+              >
+                🔄
+              </button>
+              <button 
+                onClick={() => window.location.href = '/'}
+                className="btn-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:scale-105 transition-all duration-300"
+              >
+                New Analysis
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10 px-4 pt-24 pb-8">
+        {/* Main Title Section */}
+        <div className="text-center mb-16">
+          <div className="inline-block">
+            <div className="relative">
+              <h2 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] mb-4 animate-pulse">
+                Analysis Results
+              </h2>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-[#667eea] to-[#f093fb] rounded-full"></div>
             </div>
           </div>
         </div>
 
-        {/* Summary Card */}
-        <div className="glass rounded-3xl p-8 mb-10 card-hover border border-white/10">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center justify-center">
-              <span className="mr-3 text-[#f093fb]">✨</span>
-              Summary
-              <span className="ml-3 text-[#667eea]">✨</span>
-            </h2>
-            <p className="text-gray-200 text-xl leading-relaxed max-w-4xl mx-auto">
+        {/* Enhanced Summary Card */}
+        <div className="glass rounded-3xl p-10 mb-12 card-hover border border-white/10 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb]"></div>
+          <div className="text-center relative z-10">
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-[#f093fb] to-[#667eea] rounded-full flex items-center justify-center mr-4 animate-spin-slow">
+                <span className="text-3xl">✨</span>
+              </div>
+              <h3 className="text-4xl font-bold text-white">Executive Summary</h3>
+              <div className="w-16 h-16 bg-gradient-to-r from-[#667eea] to-[#f093fb] rounded-full flex items-center justify-center ml-4 animate-spin-slow">
+                <span className="text-3xl">✨</span>
+              </div>
+            </div>
+            <p className="text-gray-200 text-2xl leading-relaxed max-w-5xl mx-auto font-light">
               {cleanAnalysis.summary}
             </p>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-          <div className="glass rounded-2xl p-6 text-center card-hover border border-[#10b981]/20">
-            <div className="text-4xl font-bold text-[#10b981] mb-2">{cleanAnalysis.keywordsFound.length}</div>
-            <div className="text-[#10b981] font-semibold">Keywords Found</div>
-            <div className="mt-2 h-2 bg-[#10b981]/20 rounded-full overflow-hidden">
-              <div className="h-full bg-[#10b981] rounded-full animate-pulse" style={{width: '85%'}}></div>
+        {/* Enhanced Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {[
+            { count: cleanAnalysis.keywordsFound.length, label: 'Keywords Found', color: '#10b981', icon: '✅', progress: 85 },
+            { count: cleanAnalysis.missingKeywords.length, label: 'Missing Keywords', color: '#ef4444', icon: '❌', progress: 60 },
+            { count: cleanAnalysis.skillsGap.length, label: 'Skills to Add', color: '#f59e0b', icon: '🎯', progress: 70 },
+            { count: cleanAnalysis.quickWins.length, label: 'Quick Wins', color: '#667eea', icon: '🚀', progress: 90 }
+          ].map((stat, index) => (
+            <div key={index} className="glass rounded-3xl p-8 text-center card-hover border border-white/10 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-full h-1 opacity-50" style={{ backgroundColor: stat.color }}></div>
+              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">{stat.icon}</div>
+              <div className="text-5xl font-black mb-3 group-hover:scale-110 transition-all duration-300" style={{ color: stat.color }}>
+                {stat.count}
+              </div>
+              <div className="font-bold text-white mb-4 text-lg">{stat.label}</div>
+              <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                <div 
+                  className="h-full rounded-full transition-all duration-1000 ease-out"
+                  style={{ 
+                    backgroundColor: stat.color, 
+                    width: `${stat.progress}%`,
+                    animation: 'slideIn 2s ease-out'
+                  }}
+                ></div>
+              </div>
             </div>
-          </div>
-          <div className="glass rounded-2xl p-6 text-center card-hover border border-[#ef4444]/20">
-            <div className="text-4xl font-bold text-[#ef4444] mb-2">{cleanAnalysis.missingKeywords.length}</div>
-            <div className="text-[#ef4444] font-semibold">Missing Keywords</div>
-            <div className="mt-2 h-2 bg-[#ef4444]/20 rounded-full overflow-hidden">
-              <div className="h-full bg-[#ef4444] rounded-full animate-pulse" style={{width: '60%'}}></div>
-            </div>
-          </div>
-          <div className="glass rounded-2xl p-6 text-center card-hover border border-[#f59e0b]/20">
-            <div className="text-4xl font-bold text-[#f59e0b] mb-2">{cleanAnalysis.skillsGap.length}</div>
-            <div className="text-[#f59e0b] font-semibold">Skills to Add</div>
-            <div className="mt-2 h-2 bg-[#f59e0b]/20 rounded-full overflow-hidden">
-              <div className="h-full bg-[#f59e0b] rounded-full animate-pulse" style={{width: '70%'}}></div>
-            </div>
-          </div>
-          <div className="glass rounded-2xl p-6 text-center card-hover border border-[#667eea]/20">
-            <div className="text-4xl font-bold text-[#667eea] mb-2">{cleanAnalysis.quickWins.length}</div>
-            <div className="text-[#667eea] font-semibold">Quick Wins</div>
-            <div className="mt-2 h-2 bg-[#667eea]/20 rounded-full overflow-hidden">
-              <div className="h-full bg-[#667eea] rounded-full animate-pulse" style={{width: '90%'}}></div>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Keywords Found */}
