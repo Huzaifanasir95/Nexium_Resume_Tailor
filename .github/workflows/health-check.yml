@@ -1,0 +1,49 @@
+name: Health Check
+
+on:
+  schedule:
+    # Run health check every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  health-check:
+    name: Application Health Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: nexium-resume-tailor/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd nexium-resume-tailor
+        npm ci
+        
+    - name: Test API endpoints
+      run: |
+        cd nexium-resume-tailor
+        node scripts/test-connections.js
+      env:
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        
+    - name: Check deployment status
+      run: |
+        # Check if the application is responding
+        curl -f https://nexium-resume-tailor.vercel.app/api/test-connection || exit 1
+        
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "Health check failed! Please investigate."
+        echo "::error::Application health check failed"
