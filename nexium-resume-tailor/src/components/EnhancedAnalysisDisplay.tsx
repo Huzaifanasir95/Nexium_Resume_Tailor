@@ -413,7 +413,10 @@ export default function EnhancedAnalysisDisplay() {
             🚀 New Analysis
           </button>
           <button 
-            onClick={() => setUseGemini(!useGemini) || fetchAnalysis()}
+            onClick={() => {
+              setUseGemini(!useGemini)
+              fetchAnalysis()
+            }}
             className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-2xl font-bold transition-all duration-300"
           >
             🤖 {useGemini ? 'Manual Parse' : 'AI Parse'}
