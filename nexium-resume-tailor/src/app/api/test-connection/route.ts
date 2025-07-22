@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server'
-import { connectToMongoDB, testSupabaseConnection } from '@/utils/db'
+import { testMongoDBConnection, testSupabaseConnection } from '@/utils/db'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -47,8 +47,7 @@ export async function GET(request: NextRequest) {
   try {
     // Test MongoDB connection
     try {
-      const mongoClient = await connectToMongoDB()
-      await mongoClient.close()
+      await testMongoDBConnection()
       results.mongodb = { status: 'success', error: null }
     } catch (error: any) {
       results.mongodb = { status: 'error', error: error.message }

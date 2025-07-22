@@ -1,68 +1,52 @@
 import { createClient } from '@supabase/supabase-js'
-import { MongoClient, Db } from 'mongodb'
+import { MongoClient } from 'mongodb'
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://nasirhuzaifa95:1234@cluster0.okbji.mongodb.net'
+const MONGODB_URI = process.env.MONGODB_URI || ''
 
-let cachedClient: MongoClient | null = null
-let cachedDb: Db | null = null
-
-export const connectToMongoDB = async () => {
+export const connectToMongoDB = async (): Promise<MongoClient> => {
   try {
     if (!MONGODB_URI) {
       throw new Error('MONGODB_URI is not defined in environment variables')
     }
     
-    // Return cached connection if available
-    if (cachedClient && cachedDb) {
-      return { client: cachedClient, db: cachedDb }
-    }
-    
     const client = new MongoClient(MONGODB_URI, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
+      // Add connection options if needed
     })
     
-    await client.connect()
-    const db = client.db('resume_tailor')
-    
-    // Test the connection
-    await db.command({ ping: 1 })
+    // Test the connection by accessing the admin database
+    await client.db("admin").command({ ping: 1 })
     console.log('Successfully connected to MongoDB')
-    
-    // Cache the connection
-    cachedClient = client
-    cachedDb = db
-    
-    return { client, db }
+    return client
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error)
     throw error
   }
 }
 
-export const insertResumeAnalysis = async (analysisData: any) => {
+// Test MongoDB connection function for health checks
+export const testMongoDBConnection = async (): Promise<boolean> => {
+  let client: MongoClient | null = null
   try {
-    const { db } = await connectToMongoDB()
-    
-    const document = {
-      ...analysisData,
-      createdAt: new Date(),
-      updatedAt: new Date()
+    if (!MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined in environment variables')
     }
     
-    const result = await db.collection('resume_analyses').insertOne(document)
-    console.log('Resume analysis stored with ID:', result.insertedId)
+    client = new MongoClient(MONGODB_URI)
+    await client.connect()
     
-    return {
-      success: true,
-      analysisId: result.insertedId.toString(),
-      message: 'Resume analysis stored successfully'
-    }
+    // Test the connection by pinging the database
+    await client.db("admin").command({ ping: 1 })
+    console.log('Successfully connected to MongoDB')
+    
+    return true
   } catch (error) {
-    console.error('Failed to store resume analysis:', error)
+    console.error('Failed to connect to MongoDB:', error)
     throw error
+  } finally {
+    if (client) {
+      await client.close()
+    }
   }
 }
 
