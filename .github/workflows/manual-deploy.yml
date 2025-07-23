@@ -19,20 +19,28 @@ jobs:
         cache: 'npm'
         cache-dependency-path: nexium-resume-tailor/package-lock.json
         
+    - name: Install dependencies
+      run: |
+        cd nexium-resume-tailor
+        npm ci
+        
     - name: Install Vercel CLI
       run: npm install --global vercel@latest
       
-    - name: Pull Vercel Environment Information
+    - name: Setup Vercel Project
       run: |
         cd nexium-resume-tailor
-        vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        echo '{"orgId":"${{ secrets.VERCEL_ORG_ID }}","projectId":"${{ secrets.VERCEL_PROJECT_ID }}"}' > .vercel/project.json
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       
-    - name: Build Project Artifacts
+    - name: Build and Deploy to Vercel
       run: |
         cd nexium-resume-tailor
-        vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      
-    - name: Deploy Project Artifacts to Vercel
-      run: |
-        cd nexium-resume-tailor
-        vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
