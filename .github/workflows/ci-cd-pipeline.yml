@@ -69,6 +69,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: nexium-resume-tailor
     
     steps:
     - name: Checkout code
@@ -82,16 +85,13 @@ jobs:
         cache-dependency-path: nexium-resume-tailor/package-lock.json
         
     - name: Install dependencies
-      run: |
-        cd nexium-resume-tailor
-        npm ci
+      run: npm ci
         
     - name: Install Vercel CLI
       run: npm install --global vercel@latest
       
     - name: Setup Vercel Project
       run: |
-        cd nexium-resume-tailor
         mkdir -p .vercel
         echo '{"orgId":"${{ secrets.VERCEL_ORG_ID }}","projectId":"${{ secrets.VERCEL_PROJECT_ID }}"}' > .vercel/project.json
       env:
@@ -100,9 +100,7 @@ jobs:
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       
     - name: Build and Deploy to Vercel
-      run: |
-        cd nexium-resume-tailor
-        vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+      run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
