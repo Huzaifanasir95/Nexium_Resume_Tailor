@@ -27,23 +27,24 @@ jobs:
       run: npm install --global vercel@latest
       
     - name: Setup Vercel Project
-      working-directory: ./nexium-resume-tailor
       run: |
         mkdir -p .vercel
         echo '{"orgId":"${{ secrets.VERCEL_ORG_ID }}","projectId":"${{ secrets.VERCEL_PROJECT_ID }}"}' > .vercel/project.json
         cat .vercel/project.json
         pwd
         ls -la
+        echo "Contents of nexium-resume-tailor folder:"
+        ls -la nexium-resume-tailor/
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       
     - name: Build and Deploy to Vercel
-      working-directory: ./nexium-resume-tailor
       run: |
         pwd
         ls -la
+        echo "Deploying from repository root, Vercel will use nexium-resume-tailor as configured"
         vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
