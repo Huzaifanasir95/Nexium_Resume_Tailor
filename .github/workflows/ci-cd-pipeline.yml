@@ -11,6 +11,9 @@ jobs:
   test:
     name: Test & Code Quality
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./nexium-resume-tailor
     
     steps:
     - name: Checkout code
@@ -24,20 +27,16 @@ jobs:
         cache-dependency-path: nexium-resume-tailor/package-lock.json
         
     - name: Install dependencies
-      working-directory: ./nexium-resume-tailor
       run: npm ci
         
     - name: Run ESLint
-      working-directory: ./nexium-resume-tailor
       run: npm run lint
       continue-on-error: true
         
     - name: Run TypeScript check
-      working-directory: ./nexium-resume-tailor
       run: npx tsc --noEmit
         
     - name: Test database connections
-      working-directory: ./nexium-resume-tailor
       run: node scripts/test-connections.js
       env:
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
@@ -47,7 +46,6 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         
     - name: Build application
-      working-directory: ./nexium-resume-tailor
       run: npm run build
       env:
         MONGODB_URI: ${{ secrets.MONGODB_URI }}
@@ -64,6 +62,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: ./nexium-resume-tailor
     
     steps:
     - name: Checkout code
@@ -77,14 +78,12 @@ jobs:
         cache-dependency-path: nexium-resume-tailor/package-lock.json
         
     - name: Install dependencies
-      working-directory: ./nexium-resume-tailor
       run: npm ci
         
     - name: Install Vercel CLI
       run: npm install --global vercel@latest
       
     - name: Setup Vercel Project
-      working-directory: ./nexium-resume-tailor
       run: |
         mkdir -p .vercel
         echo '{"orgId":"${{ secrets.VERCEL_ORG_ID }}","projectId":"${{ secrets.VERCEL_PROJECT_ID }}"}' > .vercel/project.json
@@ -97,11 +96,10 @@ jobs:
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       
     - name: Build and Deploy to Vercel
-      working-directory: ./nexium-resume-tailor
       run: |
         pwd
         ls -la
-        vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+        vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=.
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -111,6 +109,9 @@ jobs:
   security:
     name: Security Audit
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./nexium-resume-tailor
     
     steps:
     - name: Checkout code
@@ -122,6 +123,5 @@ jobs:
         node-version: '18'
         
     - name: Run security audit
-      working-directory: ./nexium-resume-tailor
       run: npm audit --audit-level=high
       continue-on-error: true
