@@ -7,9 +7,6 @@ jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: nexium-resume-tailor
     
     steps:
     - name: Checkout
@@ -23,12 +20,14 @@ jobs:
         cache-dependency-path: nexium-resume-tailor/package-lock.json
         
     - name: Install dependencies
+      working-directory: ./nexium-resume-tailor
       run: npm ci
         
     - name: Install Vercel CLI
       run: npm install --global vercel@latest
       
     - name: Setup Vercel Project
+      working-directory: ./nexium-resume-tailor
       run: |
         mkdir -p .vercel
         echo '{"orgId":"${{ secrets.VERCEL_ORG_ID }}","projectId":"${{ secrets.VERCEL_PROJECT_ID }}"}' > .vercel/project.json
@@ -41,6 +40,7 @@ jobs:
         VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       
     - name: Build and Deploy to Vercel
+      working-directory: ./nexium-resume-tailor
       run: |
         pwd
         ls -la
