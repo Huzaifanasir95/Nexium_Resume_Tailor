@@ -55,6 +55,7 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
         NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+        NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
 
   # Job 2: Deploy to Vercel (only on main branch)
   deploy:
